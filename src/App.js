@@ -8,9 +8,12 @@ export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      ready: false,
       loaded: false,
-      balance: ''
+      balance: '',
+      transactions: []
     };
+    this.getListOfTransactions = this.getListOfTransactions.bind(this);
     this.getBalance = this.getBalance.bind(this);
     this.checkContract = this.checkContract.bind(this);
   }
@@ -33,6 +36,21 @@ export default class App extends React.Component {
       }
     })
   }
+  getListOfTransactions() {
+    return fetch('http://ropsten.etherscan.io/api?module=account&action=txlist&address=0x97dce7cdf030d9f0b9df59468b85213298e65af4&startblock=0&endblock=99999999&sort=asc&apikey=YourApiKeyToken',{
+
+    })
+    .then((response) => {
+      return response.json();
+    })
+    .then((data)=>{
+      let transactions = data.result;
+      this.setState({
+        ready: true,
+        transactions: transactions
+      })
+    })
+  }
   getBalance(){
     return fetch('https://ropsten.etherscan.io/api?module=account&action=balance&address=0x97dce7cdf030d9f0b9df59468b85213298e65af4&tag=latest&apikey=YourApiKeyToken',{
 
@@ -50,14 +68,25 @@ export default class App extends React.Component {
   }
   componentDidMount() {
     this.getBalance();
+    this.getListOfTransactions();
     this.checkContract();
   }
   render() {
     return(
       <div>
         <h1>Ethereum Project</h1>
+        <h2>Balance: {this.state.loaded ? this.state.balance : null}</h2>
         <ul>
-          <li>Balance: {this.state.loaded ? this.state.balance : null}</li>
+          {this.state.ready ? this.state.transactions.map((item, key)=>{
+            return (
+              <li key={key}>
+                <b>blockNumber:</b> {item.blockNumber} <br />
+                <b>timeStamp</b> {item.timeStamp} <br />
+                <b>hash</b> {item.blockHash} <br />
+                <b>value</b> {item.value} <br />
+              </li>
+            )
+          }): null}
         </ul>
       </div>
     )
