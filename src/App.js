@@ -7,6 +7,11 @@ const version = web3.version.api;
 export default class App extends React.Component {
   constructor(props) {
     super(props);
+    this.state = {
+      loaded: false,
+      balance: ''
+    };
+    this.getBalance = this.getBalance.bind(this);
     this.checkContract = this.checkContract.bind(this);
   }
   checkContract() {
@@ -28,7 +33,23 @@ export default class App extends React.Component {
       }
     })
   }
+  getBalance(){
+    return fetch('https://ropsten.etherscan.io/api?module=account&action=balance&address=0x97dce7cdf030d9f0b9df59468b85213298e65af4&tag=latest&apikey=YourApiKeyToken',{
+
+    })
+    .then((response) => {
+      return response.json();
+    })
+    .then((data)=>{
+      let balance = data.result;
+      this.setState({
+        loaded: true,
+        balance: balance
+      })
+    })
+  }
   componentDidMount() {
+    this.getBalance();
     this.checkContract();
   }
   render() {
@@ -36,7 +57,7 @@ export default class App extends React.Component {
       <div>
         <h1>Ethereum Project</h1>
         <ul>
-
+          <li>Balance: {this.state.loaded ? this.state.balance : null}</li>
         </ul>
       </div>
     )
