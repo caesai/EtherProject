@@ -1,15 +1,31 @@
 import React from 'react';
 import Web3 from 'web3';
+import ProviderEngine from 'web3-provider-engine';
+import FixtureSubprovider from 'web3-provider-engine/subproviders/fixture.js';
+import RpcSubprovider from 'web3-provider-engine/subproviders/rpc.js';
 
-const web3 = new Web3(window['web3'].currentProvider);
-const version = web3.version.api;
+const engine = new ProviderEngine();
+const initialWeb3 = new Web3(engine);
+engine.addProvider(new FixtureSubprovider({
+  web3_clientVersion: 'ProviderEngine/v0.0.0/javascript',
+  net_listening: true,
+  eth_hashrate: '0x00',
+  eth_mining: false,
+  eth_syncing: true
+}));
+
+engine.addProvider(new RpcSubprovider({
+  rpcUrl: 'https://testrpc.metamask.io/'
+}))
+
+const web3 = new Web3(global.web3.currentProvider);
 
 export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       address: '',
-      balance: '',
+      balance: ''
     };
     this.getBalance = this.getBalance.bind(this);
     this.getAccounts = this.getAccounts.bind(this);
@@ -21,15 +37,20 @@ export default class App extends React.Component {
           balance: result.toNumber()
         });
       } else {
-        console.error(error);
+        console.log(error);
       }
     })
   }
   getAccounts() {
     web3.eth.getAccounts((err,accounts) => {
-      this.setState({
-        address:  accounts[0]
-      });
+      if (!err) {
+        console.log(accounts);
+        this.setState({
+          address:  accounts[0]
+        });
+      } else {
+        console.log(err);
+      }
     });
   }
   componentDidMount() {
