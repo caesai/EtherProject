@@ -1,51 +1,25 @@
 import React from 'react';
 import Web3 from 'web3';
-import ProviderEngine from 'web3-provider-engine';
-import FixtureSubprovider from 'web3-provider-engine/subproviders/fixture.js';
-import RpcSubprovider from 'web3-provider-engine/subproviders/rpc.js';
-
-const engine = new ProviderEngine();
-const initialWeb3 = new Web3(engine);
-engine.addProvider(new FixtureSubprovider({
-  web3_clientVersion: 'ProviderEngine/v0.0.0/javascript',
-  net_listening: true,
-  eth_hashrate: '0x00',
-  eth_mining: false,
-  eth_syncing: true
-}));
-
-engine.addProvider(new RpcSubprovider({
-  rpcUrl: 'https://testrpc.metamask.io/'
-}))
-console.log(global.web3);
+import abi from './Abi.json';
 
 const web3 = new Web3(global.web3.currentProvider);
+const contractAddress = '0x97DCE7cdF030d9F0B9Df59468B85213298E65Af4';
 
 export default class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
       address: '',
-      balance: ''
+      balance: '',
+      contract: contractAddress,
+      votes: {}
     };
-    this.getBalance = this.getBalance.bind(this);
+    this.getContractData = this.getContractData.bind(this);
     this.getAccounts = this.getAccounts.bind(this);
-  }
-  getBalance() {
-    web3.eth.getBalance('0x189417951DFaD6D665571D893a3C505A821aECAe', (error, result) => {
-      if (!error) {
-        this.setState({
-          balance: result.toNumber()
-        });
-      } else {
-        console.log(error);
-      }
-    })
   }
   getAccounts() {
     web3.eth.getAccounts((err,accounts) => {
       if (!err) {
-        console.log(accounts);
         this.setState({
           address:  accounts[0]
         });
@@ -54,16 +28,30 @@ export default class App extends React.Component {
       }
     });
   }
+  getContractData(index) {
+    const contract = web3.eth.contract(abi).at(contractAddress);
+    console.log(contract);
+    contract.votes(index,(resp, smth) => {
+      this.setState({
+        votes: {
+          [index]: smth.c[0]
+        }
+      });
+    });
+  }
   componentDidMount() {
     this.getAccounts();
-    this.getBalance();
+    this.getContractData(0);
   }
   render() {
     return(
       <div>
         <h1>Ethereum Project</h1>
         <h3>Address: {this.state.address ? this.state.address: null}</h3>
-        <h3>Balance: {this.state.balance ? this.state.balance : null}</h3>
+        <h3>Contract: {this.state.contract ? this.state.contract : null}</h3>
+        <h3>Communities:
+          <br/> 0: {this.state.votes['0'] ? this.state.votes['0'] : null}
+          <br/> 1: {this.state.votes['1'] ? this.state.votes['1'] : null}</h3>
         <ul>
         </ul>
       </div>
