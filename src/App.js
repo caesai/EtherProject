@@ -17,6 +17,7 @@ engine.addProvider(new FixtureSubprovider({
 engine.addProvider(new RpcSubprovider({
   rpcUrl: 'https://testrpc.metamask.io/'
 }))
+console.log(global.web3);
 
 const web3 = new Web3(global.web3.currentProvider);
 
